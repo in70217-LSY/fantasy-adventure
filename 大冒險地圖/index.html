@@ -182,6 +182,53 @@
       height: 10.2%;
     }
 
+    .gate-map-stamps {
+      position: absolute;
+      z-index: 7;
+      top: 42.1%;
+      left: 43.25%;
+      width: 13.5%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7%;
+      pointer-events: none;
+    }
+
+    .gate-map-stamp {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      visibility: hidden;
+      opacity: 0;
+      color: #56350b;
+      font-size: clamp(.8rem, 2.1vw, 2rem);
+      border: clamp(2px, .28vw, 5px) solid #fff0ad;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffe98c 0 48%, #e19a28 50% 100%);
+      box-shadow:
+        0 3px 0 #86500c,
+        0 0 15px rgba(255, 213, 80, .85);
+      text-shadow: 0 1px 0 #fff8cf;
+      transform: scale(1.5) rotate(-14deg);
+    }
+
+    .gate-map-stamp.completed {
+      visibility: visible;
+      opacity: 1;
+      animation: gate-stamp-in .45s cubic-bezier(.2, 1.55, .5, 1) both;
+    }
+
+    @keyframes gate-stamp-in {
+      from {
+        opacity: 0;
+        transform: scale(1.8) rotate(-24deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotate(-8deg);
+      }
+    }
+
     .completion-stamp {
       position: absolute;
       z-index: 8;
@@ -577,6 +624,12 @@
     <div class="map-stage">
       <img class="map-image" src="map-bg.png" alt="奇幻冒險大地圖">
 
+      <div class="gate-map-stamps" aria-label="中央大門印章進度">
+        <span class="gate-map-stamp" data-cert="cert_dynasty" title="英文之印">🔤</span>
+        <span class="gate-map-stamp" data-cert="cert_idiom" title="貪吃蛇之印">🐍</span>
+        <span class="gate-map-stamp" data-cert="cert_warrior" title="勇者之印">⚔️</span>
+      </div>
+
       <a
         class="hotspot hotspot-english"
         data-cert="cert_dynasty"
@@ -676,6 +729,7 @@
 
     const cover = document.getElementById("cover");
     const levelHotspots = [...document.querySelectorAll(".hotspot[data-cert]")];
+    const gateMapStamps = [...document.querySelectorAll(".gate-map-stamp")];
     const certCount = document.getElementById("cert-count");
     const overlay = document.getElementById("gate-overlay");
     const gateContent = document.getElementById("gate-content");
@@ -746,6 +800,9 @@
         const completed = hasCertificate(hotspot.dataset.cert);
         hotspot.classList.toggle("completed", completed);
         if (completed) count += 1;
+      });
+      gateMapStamps.forEach((stamp) => {
+        stamp.classList.toggle("completed", hasCertificate(stamp.dataset.cert));
       });
       certCount.textContent = count;
     }
