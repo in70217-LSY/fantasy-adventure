@@ -726,6 +726,8 @@
     ];
     const COVER_KEY = "adventure_cover_seen";
     const PENDING_SCENE_KEY = "adventure_pending_scene";
+    const PROGRESS_VERSION_KEY = "adventure_progress_version";
+    const PROGRESS_VERSION = "2";
 
     const cover = document.getElementById("cover");
     const levelHotspots = [...document.querySelectorAll(".hotspot[data-cert]")];
@@ -772,6 +774,14 @@
 
     function hasCertificate(key) {
       return localStorage.getItem(key) === "true";
+    }
+
+    function migrateProgress() {
+      if (localStorage.getItem(PROGRESS_VERSION_KEY) === PROGRESS_VERSION) return;
+      CERTIFICATES.forEach((certificate) => localStorage.removeItem(certificate.key));
+      localStorage.removeItem("adventure_start");
+      sessionStorage.removeItem(PENDING_SCENE_KEY);
+      localStorage.setItem(PROGRESS_VERSION_KEY, PROGRESS_VERSION);
     }
 
     function ensureStartTime() {
@@ -1024,7 +1034,8 @@
     }
 
     function clearProgress() {
-      localStorage.clear();
+      CERTIFICATES.forEach((certificate) => localStorage.removeItem(certificate.key));
+      localStorage.removeItem("adventure_start");
       sessionStorage.removeItem(PENDING_SCENE_KEY);
       ensureStartTime();
       updateMap();
@@ -1032,7 +1043,8 @@
     }
 
     function restartAdventure() {
-      localStorage.clear();
+      CERTIFICATES.forEach((certificate) => localStorage.removeItem(certificate.key));
+      localStorage.removeItem("adventure_start");
       sessionStorage.clear();
       window.location.reload();
     }
@@ -1067,6 +1079,7 @@
       playPendingLevelScene();
     });
 
+    migrateProgress();
     ensureStartTime();
     setupCover();
     updateMap();
