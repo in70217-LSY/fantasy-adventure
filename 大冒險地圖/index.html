@@ -452,6 +452,74 @@
       box-shadow: 0 6px 0 #237746;
     }
 
+    .ending {
+      position: fixed;
+      z-index: 200;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      visibility: hidden;
+      opacity: 0;
+      cursor: pointer;
+      background: #0b0920;
+      transition: opacity .65s ease, visibility .65s;
+    }
+
+    .ending.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .ending.changing .ending-image,
+    .ending.changing .ending-copy {
+      opacity: 0;
+    }
+
+    .ending-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: opacity .35s ease;
+    }
+
+    .ending-copy {
+      position: absolute;
+      left: 50%;
+      bottom: clamp(18px, 5vh, 58px);
+      width: min(90vw, 920px);
+      padding: clamp(13px, 2.5vw, 22px);
+      color: #fff8df;
+      text-align: center;
+      border: 2px solid rgba(255, 226, 151, .75);
+      border-radius: 20px;
+      background: rgba(20, 13, 36, .78);
+      box-shadow: 0 0 28px rgba(255, 202, 91, .3);
+      backdrop-filter: blur(8px);
+      transform: translateX(-50%);
+      transition: opacity .35s ease;
+    }
+
+    .ending-copy h2 {
+      margin: 0 0 7px;
+      color: #ffe39a;
+      font-size: clamp(1.2rem, 3.5vw, 2.1rem);
+      text-shadow: 0 2px 8px rgba(100, 58, 8, .9);
+    }
+
+    .ending-copy p {
+      margin: 0;
+      font-size: clamp(.88rem, 2vw, 1.15rem);
+      line-height: 1.65;
+    }
+
+    .ending-hint {
+      display: block;
+      margin-top: 8px;
+      color: rgba(255, 255, 255, .68);
+      font-size: .68rem;
+    }
+
     @media (max-width: 680px) {
       .map-info {
         top: 8px;
@@ -588,6 +656,15 @@
     </section>
   </div>
 
+  <section class="ending" id="ending" aria-live="polite" aria-label="冒險結局過場">
+    <img class="ending-image" id="ending-image" src="1拷貝.png" alt="">
+    <div class="ending-copy">
+      <h2 id="ending-title"></h2>
+      <p id="ending-text"></p>
+      <span class="ending-hint">點一下繼續</span>
+    </div>
+  </section>
+
   <script>
     const CERTIFICATES = [
       { key: "cert_dynasty", icon: "🎴", name: "朝代之印" },
@@ -606,8 +683,36 @@
     const slots = [...document.querySelectorAll(".slot")];
     const victory = document.getElementById("victory");
     const duration = document.getElementById("duration");
+    const ending = document.getElementById("ending");
+    const endingImage = document.getElementById("ending-image");
+    const endingTitle = document.getElementById("ending-title");
+    const endingText = document.getElementById("ending-text");
     const placed = new Set();
+    const ENDING_SCENES = [
+      {
+        image: "1拷貝.png",
+        title: "星門甦醒",
+        text: "當最後一枚印記歸位，風停止了流浪。沉睡已久的門，終於記起自己的名字。"
+      },
+      {
+        image: "2拷貝.png",
+        title: "門後的世界",
+        text: "原來門沒有通往終點。它只是把遠方，重新交還到他們手中。"
+      },
+      {
+        image: "3拷貝.png",
+        title: "星光送別",
+        text: "有些告別不需要名字。回頭時仍亮著的燈，已經說完了一切。"
+      },
+      {
+        image: "4拷貝.png",
+        title: "新的地平線",
+        text: "天亮以後，地圖多了一條沒有名字的路。「那就先別替它命名。」"
+      }
+    ];
     let pointerDrag = null;
+    let endingIndex = 0;
+    let endingLocked = false;
 
     function hasCertificate(key) {
       return localStorage.getItem(key) === "true";
@@ -793,7 +898,7 @@
       document.getElementById("open-gate").focus();
     }
 
-    function showVictory() {
+    function prepareVictory() {
       const started = Number(localStorage.getItem("adventure_start")) || Date.now();
       const totalSeconds = Math.max(0, Math.floor((Date.now() - started) / 1000));
       const minutes = Math.floor(totalSeconds / 60);
@@ -801,7 +906,48 @@
       duration.textContent =
         `${String(minutes).padStart(2, "0")} 分 ${String(seconds).padStart(2, "0")} 秒`;
       gateContent.classList.add("hidden");
+    }
+
+    function setEndingScene(index) {
+      const scene = ENDING_SCENES[index];
+      endingImage.src = scene.image;
+      endingImage.alt = scene.title;
+      endingTitle.textContent = scene.title;
+      endingText.textContent = scene.text;
+    }
+
+    function showVictory() {
+      prepareVictory();
+      overlay.classList.remove("show");
+      endingIndex = 0;
+      endingLocked = false;
+      setEndingScene(endingIndex);
+      ending.classList.remove("changing");
+      ending.classList.add("show");
+    }
+
+    function finishEnding() {
+      ending.classList.remove("show");
+      overlay.classList.add("show");
       victory.classList.add("show");
+      document.getElementById("again").focus();
+    }
+
+    function advanceEnding() {
+      if (!ending.classList.contains("show") || endingLocked) return;
+      if (endingIndex === ENDING_SCENES.length - 1) {
+        finishEnding();
+        return;
+      }
+
+      endingLocked = true;
+      ending.classList.add("changing");
+      window.setTimeout(() => {
+        endingIndex += 1;
+        setEndingScene(endingIndex);
+        ending.classList.remove("changing");
+        endingLocked = false;
+      }, 350);
     }
 
     function clearProgress() {
@@ -828,10 +974,16 @@
       }
     });
     document.getElementById("again").addEventListener("click", restartAdventure);
+    ending.addEventListener("click", advanceEnding);
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) closeGate();
     });
     document.addEventListener("keydown", (event) => {
+      if ((event.key === "Enter" || event.key === " ") && ending.classList.contains("show")) {
+        event.preventDefault();
+        advanceEnding();
+        return;
+      }
       if (event.key === "Escape" && overlay.classList.contains("show")) {
         closeGate();
       }
