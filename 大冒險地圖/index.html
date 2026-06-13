@@ -987,8 +987,8 @@
 
     function showVictory() {
       prepareVictory();
-      overlay.classList.remove("show");
-      showEndingScene(3, finishEnding);
+      gateContent.classList.add("hidden");
+      finishEnding();
     }
 
     function finishEnding() {
@@ -1025,7 +1025,7 @@
       const sceneByCertificate = {
         cert_dynasty: 0,
         cert_idiom: 1,
-        cert_warrior: 2
+        cert_warrior: 3
       };
       const sceneIndex = sceneByCertificate[pendingCertificate];
       if (sceneIndex === undefined || !hasCertificate(pendingCertificate)) return;

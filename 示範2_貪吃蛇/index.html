@@ -332,7 +332,7 @@
       </div>
     </div>
 
-    <p class="help" id="help">達到 50 分取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向</p>
+    <p class="help" id="help">達到 20 分取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向</p>
   </main>
 
   <script>
@@ -651,9 +651,9 @@
       if (head.x === food.x && head.y === food.y) {
         score += 10;
         scoreElement.textContent = score;
-        if (score >= 50) {
+        if (score >= 20) {
           localStorage.setItem("cert_idiom", "true");
-          if (score === 50) {
+          if (score === 20) {
             sessionStorage.setItem("adventure_pending_scene", "cert_idiom");
             running = false;
             clearTimeout(timer);
@@ -700,7 +700,7 @@
       scoreElement.textContent = score;
       helpElement.innerHTML = localStorage.getItem("cert_idiom") === "true"
         ? "✓ 已取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向"
-        : "達到 50 分取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向";
+        : "達到 20 分取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向";
       overlay.classList.remove("show");
       boardWrap.classList.remove("dying");
       gameElement.classList.remove("shake");
