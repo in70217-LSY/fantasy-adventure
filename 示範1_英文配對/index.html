@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英文配對小遊戲</title>
+  <style>
+    :root {
+      --blue: #4f8cff;
+      --blue-dark: #3269cf;
+      --yellow: #ffd85a;
+      --green: #50c878;
+      --red: #ff6b72;
+      --ink: #34425c;
+      --paper: #fffdf5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      color: var(--ink);
+      font-family: "Arial Rounded MT Bold", "Microsoft JhengHei", sans-serif;
+      background:
+        radial-gradient(circle at 10% 15%, rgba(255, 255, 255, 0.75) 0 4%, transparent 4.3%),
+        radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.65) 0 3%, transparent 3.3%),
+        linear-gradient(145deg, #bde7ff, #e2d4ff 55%, #ffe3c6);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .map-link {
+      position: fixed;
+      z-index: 30;
+      top: 14px;
+      left: 14px;
+      padding: 9px 14px;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-decoration: none;
+      border: 2px solid #fff;
+      border-radius: 999px;
+      background: var(--blue);
+      box-shadow: 0 4px 0 var(--blue-dark);
+    }
+
+    .game {
+      width: min(100%, 920px);
+      margin: 0 auto;
+      padding: clamp(20px, 4vw, 36px);
+      border: 5px solid rgba(255, 255, 255, 0.82);
+      border-radius: 32px;
+      background: rgba(255, 253, 245, 0.94);
+      box-shadow: 0 18px 0 rgba(78, 100, 148, 0.18), 0 30px 60px rgba(62, 79, 120, 0.2);
+    }
+
+    header {
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--blue);
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      text-shadow: 0 4px 0 #d8e6ff;
+    }
+
+    .subtitle {
+      margin: 8px 0 20px;
+      color: #74819a;
+      font-size: 1rem;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      max-width: 620px;
+      margin: 0 auto 25px;
+      padding: 12px 18px;
+      border-radius: 18px;
+      background: #eef5ff;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 13px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #d8e2f2;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), #8ade70);
+      transition: width 0.35s ease;
+    }
+
+    #progress-text {
+      min-width: 78px;
+      color: var(--blue-dark);
+      font-weight: 800;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(18px, 5vw, 60px);
+    }
+
+    .column-title {
+      margin: 0 0 12px;
+      text-align: center;
+      color: #77839a;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      min-height: 82px;
+      cursor: pointer;
+      border: 3px solid transparent;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 6px 0 #dbe2ed;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .card:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 9px 0 #dbe2ed;
+    }
+
+    .card.selected {
+      border-color: var(--yellow);
+      background: #fffbea;
+      box-shadow: 0 6px 0 #e8bd36, 0 0 0 5px rgba(255, 216, 90, 0.2);
+      transform: scale(1.03);
+    }
+
+    .word-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .word-card .english {
+      color: var(--blue-dark);
+      font-size: clamp(1.25rem, 4vw, 1.65rem);
+      font-weight: 900;
+    }
+
+    .word-card .chinese {
+      color: #8b96a9;
+      font-size: 0.85rem;
+    }
+
+    .image-card {
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      font-size: 3rem;
+    }
+
+    .card.matched {
+      cursor: default;
+      border-color: var(--green);
+      background: #eaffef;
+      box-shadow: 0 6px 0 #35a85d;
+      animation: correct 0.45s ease;
+    }
+
+    .card.wrong {
+      border-color: var(--red);
+      animation: wrong 0.35s ease;
+    }
+
+    @keyframes correct {
+      50% { transform: scale(1.09) rotate(1deg); }
+    }
+
+    @keyframes wrong {
+      25%, 75% { transform: translateX(-7px); }
+      50% { transform: translateX(7px); }
+    }
+
+    .message {
+      min-height: 32px;
+      margin: 22px 0 4px;
+      text-align: center;
+      color: var(--blue-dark);
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .finish {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      visibility: hidden;
+      opacity: 0;
+      background: rgba(40, 52, 80, 0.55);
+      transition: opacity 0.25s ease, visibility 0.25s;
+    }
+
+    .finish.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .finish-card {
+      width: min(90vw, 390px);
+      padding: 36px 28px;
+      text-align: center;
+      border: 5px solid #fff;
+      border-radius: 28px;
+      background: var(--paper);
+      box-shadow: 0 18px 45px rgba(35, 45, 72, 0.3);
+      transform: scale(0.8);
+      transition: transform 0.35s cubic-bezier(.2, 1.4, .5, 1);
+    }
+
+    .finish.show .finish-card {
+      transform: scale(1);
+    }
+
+    .finish-emoji {
+      font-size: 4rem;
+    }
+
+    .finish h2 {
+      margin: 8px 0;
+      color: var(--green);
+      font-size: 2rem;
+    }
+
+    .restart {
+      margin-top: 12px;
+      padding: 13px 26px;
+      cursor: pointer;
+      color: #fff;
+      font-weight: 800;
+      border: 0;
+      border-radius: 99px;
+      background: var(--blue);
+      box-shadow: 0 6px 0 var(--blue-dark);
+    }
+
+    .restart:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--blue-dark);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      .game {
+        padding: 18px 12px 22px;
+        border-radius: 24px;
+      }
+
+      .columns {
+        gap: 10px;
+      }
+
+      .card {
+        min-height: 72px;
+      }
+
+      .word-card {
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .image-card {
+        font-size: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="map-link" href="../大冒險地圖/index.html">← 回到大地圖</a>
+
+  <main class="game">
+    <header>
+      <h1>English Match</h1>
+      <p class="subtitle">點選英文單字，再找出正確的圖片！</p>
+    </header>
+
+    <section class="status" aria-label="配對進度">
+      <div class="progress-track">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <span id="progress-text">0 / 6</span>
+    </section>
+
+    <section class="columns">
+      <div>
+        <h2 class="column-title">ENGLISH WORDS</h2>
+        <div class="card-list" id="word-list"></div>
+      </div>
+      <div>
+        <h2 class="column-title">PICTURES</h2>
+        <div class="card-list" id="image-list"></div>
+      </div>
+    </section>
+
+    <p class="message" id="message" aria-live="polite">先選一個英文單字吧！</p>
+  </main>
+
+  <div class="finish" id="finish" role="dialog" aria-modal="true" aria-labelledby="finish-title">
+    <div class="finish-card">
+      <div class="finish-emoji">🏆</div>
+      <h2 id="finish-title">全部答對了！</h2>
+      <p>太棒了，你完成了 6 組英文配對！</p>
+      <button class="restart" id="restart" type="button">再玩一次</button>
+    </div>
+  </div>
+
+  <script>
+    // 左欄單字資料：保留題目提供的中文名稱，並加入練習用英文。
+    const words = [
+      { id: 1, name: "蘋果", english: "apple" },
+      { id: 2, name: "小狗", english: "dog" },
+      { id: 3, name: "貓咪", english: "cat" },
+      { id: 4, name: "蛋糕", english: "cake" },
+      { id: 5, name: "球", english: "ball" },
+      { id: 6, name: "螞蟻", english: "ant" }
+    ];
+
+    // 右欄圖片資料：matchId 與單字 id 一對一對應。
+    const images = [
+      { id: "image-apple", matchId: 1, picture: "🍎", alt: "蘋果圖片" },
+      { id: "image-dog", matchId: 2, picture: "🐶", alt: "小狗圖片" },
+      { id: "image-cat", matchId: 3, picture: "🐱", alt: "貓咪圖片" },
+      { id: "image-cake", matchId: 4, picture: "🍰", alt: "蛋糕圖片" },
+      { id: "image-ball", matchId: 5, picture: "⚽", alt: "球的圖片" },
+      { id: "image-ant", matchId: 6, picture: "🐜", alt: "螞蟻圖片" }
+    ];
+
+    const wordList = document.getElementById("word-list");
+    const imageList = document.getElementById("image-list");
+    const message = document.getElementById("message");
+    const progressBar = document.getElementById("progress-bar");
+    const progressText = document.getElementById("progress-text");
+    const finish = document.getElementById("finish");
+    const restart = document.getElementById("restart");
+
+    let selectedWord = null;
+    let selectedImage = null;
+    let matchedCount = 0;
+    let checking = false;
+
+    function shuffle(items) {
+      const result = [...items];
+      for (let index = result.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [result[index], result[randomIndex]] = [result[randomIndex], result[index]];
+      }
+      return result;
+    }
+
+    function makeWordCard(word) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "card word-card";
+      button.dataset.matchId = word.id;
+      button.innerHTML = `
+        <span class="english">${word.english}</span>
+        <span class="chinese">${word.name}</span>
+      `;
+      button.addEventListener("click", () => selectCard(button, "word"));
+      return button;
+    }
+
+    function makeImageCard(image) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "card image-card";
+      button.dataset.matchId = image.matchId;
+      button.setAttribute("aria-label", image.alt);
+      button.textContent = image.picture;
+      button.addEventListener("click", () => selectCard(button, "image"));
+      return button;
+    }
+
+    function selectCard(card, type) {
+      if (checking || card.classList.contains("matched")) {
+        return;
+      }
+
+      const previous = type === "word" ? selectedWord : selectedImage;
+      if (previous) {
+        previous.classList.remove("selected");
+      }
+
+      card.classList.add("selected");
+      if (type === "word") {
+        selectedWord = card;
+        message.textContent = "很好！現在找出對應的圖片。";
+      } else {
+        selectedImage = card;
+        message.textContent = "圖片選好了，來看看答案！";
+      }
+
+      if (selectedWord && selectedImage) {
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      checking = true;
+      const isCorrect = selectedWord.dataset.matchId === selectedImage.dataset.matchId;
+
+      if (isCorrect) {
+        selectedWord.classList.remove("selected");
+        selectedImage.classList.remove("selected");
+        selectedWord.classList.add("matched");
+        selectedImage.classList.add("matched");
+        selectedWord.disabled = true;
+        selectedImage.disabled = true;
+        matchedCount += 1;
+        updateProgress();
+        message.textContent = "答對了！Good job! ⭐";
+        selectedWord = null;
+        selectedImage = null;
+        checking = false;
+
+        if (matchedCount === words.length) {
+          localStorage.setItem("cert_dynasty", "true");
+          setTimeout(() => finish.classList.add("show"), 550);
+        }
+      } else {
+        message.textContent = "再想一想，這兩個不一樣喔！";
+        selectedWord.classList.add("wrong");
+        selectedImage.classList.add("wrong");
+
+        setTimeout(() => {
+          selectedWord.classList.remove("selected", "wrong");
+          selectedImage.classList.remove("selected", "wrong");
+          selectedWord = null;
+          selectedImage = null;
+          checking = false;
+          message.textContent = "沒關係，再試一次！";
+        }, 650);
+      }
+    }
+
+    function updateProgress() {
+      progressText.textContent = `${matchedCount} / ${words.length}`;
+      progressBar.style.width = `${matchedCount / words.length * 100}%`;
+    }
+
+    function startGame() {
+      selectedWord = null;
+      selectedImage = null;
+      matchedCount = 0;
+      checking = false;
+      finish.classList.remove("show");
+      message.textContent = "先選一個英文單字吧！";
+      wordList.replaceChildren(...words.map(makeWordCard));
+      imageList.replaceChildren(...shuffle(images).map(makeImageCard));
+      updateProgress();
+    }
+
+    restart.addEventListener("click", startGame);
+    startGame();
+  </script>
+</body>
+</html>
