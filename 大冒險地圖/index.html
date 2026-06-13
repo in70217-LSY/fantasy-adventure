@@ -672,6 +672,7 @@
       { key: "cert_warrior", icon: "⚔️", name: "勇者之印" }
     ];
     const COVER_KEY = "adventure_cover_seen";
+    const PENDING_SCENE_KEY = "adventure_pending_scene";
 
     const cover = document.getElementById("cover");
     const levelHotspots = [...document.querySelectorAll(".hotspot[data-cert]")];
@@ -713,6 +714,7 @@
     let pointerDrag = null;
     let endingIndex = 0;
     let endingLocked = false;
+    let endingComplete = null;
 
     function hasCertificate(key) {
       return localStorage.getItem(key) === "true";
@@ -919,39 +921,54 @@
     function showVictory() {
       prepareVictory();
       overlay.classList.remove("show");
-      endingIndex = 0;
-      endingLocked = false;
-      setEndingScene(endingIndex);
-      ending.classList.remove("changing");
-      ending.classList.add("show");
+      showEndingScene(3, finishEnding);
     }
 
     function finishEnding() {
-      ending.classList.remove("show");
       overlay.classList.add("show");
       victory.classList.add("show");
       document.getElementById("again").focus();
     }
 
+    function showEndingScene(index, onComplete = null) {
+      endingIndex = index;
+      endingLocked = false;
+      endingComplete = onComplete;
+      setEndingScene(endingIndex);
+      ending.classList.remove("changing");
+      ending.classList.add("show");
+    }
+
     function advanceEnding() {
       if (!ending.classList.contains("show") || endingLocked) return;
-      if (endingIndex === ENDING_SCENES.length - 1) {
-        finishEnding();
-        return;
-      }
-
       endingLocked = true;
       ending.classList.add("changing");
       window.setTimeout(() => {
-        endingIndex += 1;
-        setEndingScene(endingIndex);
+        ending.classList.remove("show");
         ending.classList.remove("changing");
         endingLocked = false;
+        const onComplete = endingComplete;
+        endingComplete = null;
+        if (onComplete) onComplete();
       }, 350);
+    }
+
+    function playPendingLevelScene() {
+      const pendingCertificate = sessionStorage.getItem(PENDING_SCENE_KEY);
+      const sceneByCertificate = {
+        cert_dynasty: 0,
+        cert_idiom: 1,
+        cert_warrior: 2
+      };
+      const sceneIndex = sceneByCertificate[pendingCertificate];
+      if (sceneIndex === undefined || !hasCertificate(pendingCertificate)) return;
+      sessionStorage.removeItem(PENDING_SCENE_KEY);
+      window.setTimeout(() => showEndingScene(sceneIndex), 120);
     }
 
     function clearProgress() {
       localStorage.clear();
+      sessionStorage.removeItem(PENDING_SCENE_KEY);
       ensureStartTime();
       updateMap();
       closeGate();
@@ -988,7 +1005,10 @@
         closeGate();
       }
     });
-    window.addEventListener("pageshow", updateMap);
+    window.addEventListener("pageshow", () => {
+      updateMap();
+      playPendingLevelScene();
+    });
 
     ensureStartTime();
     setupCover();

@@ -653,6 +653,16 @@
         scoreElement.textContent = score;
         if (score >= 50) {
           localStorage.setItem("cert_idiom", "true");
+          if (score === 50) {
+            sessionStorage.setItem("adventure_pending_scene", "cert_idiom");
+            running = false;
+            clearTimeout(timer);
+            celebrateFood(head);
+            window.setTimeout(() => {
+              window.location.href = "../大冒險地圖/index.html";
+            }, 900);
+            return;
+          }
           helpElement.innerHTML = "✓ 已取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向";
         }
         celebrateFood(head);

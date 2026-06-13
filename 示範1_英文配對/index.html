@@ -451,7 +451,11 @@
 
         if (matchedCount === words.length) {
           localStorage.setItem("cert_dynasty", "true");
+          sessionStorage.setItem("adventure_pending_scene", "cert_dynasty");
           setTimeout(() => finish.classList.add("show"), 550);
+          setTimeout(() => {
+            window.location.href = "../大冒險地圖/index.html";
+          }, 1800);
         }
       } else {
         message.textContent = "再想一想，這兩個不一樣喔！";

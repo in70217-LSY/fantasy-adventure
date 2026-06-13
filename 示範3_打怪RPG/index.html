@@ -1287,10 +1287,14 @@
       window.setTimeout(() => {
         if (stage === MONSTERS.length - 1) {
           localStorage.setItem("cert_warrior", "true");
+          sessionStorage.setItem("adventure_pending_scene", "cert_warrior");
           document.getElementById("final-correct").textContent = correctCount;
           document.getElementById("final-coins").textContent = coins;
           document.getElementById("final-potions").textContent = potionsUsed;
           showScreen(victoryScreen);
+          window.setTimeout(() => {
+            window.location.href = "../大冒險地圖/index.html";
+          }, 1800);
         } else {
           document.getElementById("loot-message").textContent =
             `擊敗 ${MONSTERS[stage].name}，額外獲得 ${reward} 金幣！準備下一關吧。`;
