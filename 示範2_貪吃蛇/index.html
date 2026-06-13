@@ -332,7 +332,7 @@
       </div>
     </div>
 
-    <p class="help" id="help">達到 50 分取得成語之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向</p>
+    <p class="help" id="help">達到 50 分取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向</p>
   </main>
 
   <script>
@@ -653,7 +653,7 @@
         scoreElement.textContent = score;
         if (score >= 50) {
           localStorage.setItem("cert_idiom", "true");
-          helpElement.innerHTML = "✓ 已取得成語之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向";
+          helpElement.innerHTML = "✓ 已取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向";
         }
         celebrateFood(head);
         food = randomFood();
@@ -689,8 +689,8 @@
       food = randomFood();
       scoreElement.textContent = score;
       helpElement.innerHTML = localStorage.getItem("cert_idiom") === "true"
-        ? "✓ 已取得成語之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向"
-        : "達到 50 分取得成語之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向";
+        ? "✓ 已取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向"
+        : "達到 50 分取得貪吃蛇之印・使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 控制方向";
       overlay.classList.remove("show");
       boardWrap.classList.remove("dying");
       gameElement.classList.remove("shake");
